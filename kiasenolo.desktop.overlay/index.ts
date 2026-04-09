@@ -1,12 +1,17 @@
 import { app, BrowserWindow, ipcMain, Menu, Tray, screen } from 'electron';
-import path from 'path';
-import { uIOhook } from 'uiohook-napi';
+import { uIOhook, UiohookKeyboardEvent } from 'uiohook-napi';
+import path from "path"
 
 const baseURL = "http://127.0.0.1:9487/_LABS/DesktopOverlay";
 const iconPath = "icon.png";
 const appName = "Desktop Overlay";
+
 app.setName("Desktop-Overlay");
 app.setAppUserModelId("kiasenolo.desktop.overlay");
+const authorName = "KIASENOLO";
+const appDataPath = app.getPath('appData');
+const newUserDataPath = path.join(appDataPath, authorName, app.getName());
+app.setPath('userData', newUserDataPath);
 
 app.whenReady().then(() => {
   app.commandLine.appendSwitch('enable-gpu');
@@ -26,6 +31,7 @@ app.whenReady().then(() => {
     // opacity: .7,
     webPreferences: {
       webSecurity: false,
+      preload: path.join(__dirname, 'main.js')
     },
   });
 
@@ -53,21 +59,40 @@ app.whenReady().then(() => {
 
   TrayOwO.setContextMenu(Menu.buildFromTemplate([
     {
-      label: "Reload",
+      label: "Exit",
       click() {
-        Main.loadURL(baseURL + "?NONE_BACKGROUND");
+        uIOhook.stop()
+        app.exit(0)
       },
     }
   ]))
 
-  uIOhook.on('keydown', (event) => {
-    if (event.keycode === 56 || event.keycode === 3640) {
+
+  let AFKMode = false;
+  const setAFKMode = (tar: boolean) => {
+    AFKMode = tar;
+    Main.webContents.send("AFK-MODE", tar);
+    // Main.setIgnoreMouseEvents(!tar)
+  }
+
+  const keyEvent = (e: UiohookKeyboardEvent) => {
+    if (AFKMode) return;
+    const _ = !(e.metaKey && e.altKey)
+    Main.setIgnoreMouseEvents(_)
+    Main.webContents.send("FOCUS-ON-IT", !_)
+  }
+
+  uIOhook.on('keydown', keyEvent);
+  uIOhook.on('keyup', keyEvent);
+
+  uIOhook.on('keydown', (e) => {
+    if (e.altKey && e.ctrlKey && e.keycode === 37) {
+      setAFKMode(!AFKMode)
     }
   });
 
-  uIOhook.on('keyup', (event) => {
-    if (event.keycode === 56 || event.keycode === 3640) {
-    }
+  uIOhook.on('keydown', (e) => {
+    console.log(e.keycode);
   });
 
   uIOhook.start()
@@ -75,5 +100,4 @@ app.whenReady().then(() => {
   Main.on("close", () => {
     uIOhook.stop()
   })
-
 });
