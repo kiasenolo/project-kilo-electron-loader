@@ -1,15 +1,14 @@
 import { app, BrowserWindow, ipcMain, Menu, Tray, screen } from 'electron';
 import path from 'path';
+import { setAppInfo } from './cfg';
 
 const baseURL = "http://127.0.0.1:9487/_LABS/E621-API";
 const iconPath = "icon.ico";
 
-app.setName("E621-Desktop-App");
-app.setAppUserModelId("kiasenolo.e621.app");
-const authorName = "KIASENOLO";
-const appDataPath = app.getPath('appData');
-const newUserDataPath = path.join(appDataPath, authorName, app.getName());
-app.setPath('userData', newUserDataPath);
+setAppInfo(app, {
+  appID: "kiasenolo.e621.app",
+  appName: "E621-Desktop-App"
+})
 
 app.whenReady().then(() => {
   app.commandLine.appendSwitch('enable-gpu');

@@ -1,17 +1,16 @@
 import { app, BrowserWindow, ipcMain, Menu, Tray, screen } from 'electron';
 import { uIOhook, UiohookKeyboardEvent } from 'uiohook-napi';
 import path from "path"
+import { setAppInfo } from '../kiasenolo.e621.app/cfg';
 
 const baseURL = "http://127.0.0.1:9487/_LABS/DesktopOverlay";
 const iconPath = "icon.png";
 const appName = "Desktop Overlay";
 
-app.setName("Desktop-Overlay");
-app.setAppUserModelId("kiasenolo.desktop.overlay");
-const authorName = "KIASENOLO";
-const appDataPath = app.getPath('appData');
-const newUserDataPath = path.join(appDataPath, authorName, app.getName());
-app.setPath('userData', newUserDataPath);
+setAppInfo(app, {
+  appID: "kiasenolo.desktop.overlay",
+  appName: "Desktop-Overlay"
+})
 
 app.whenReady().then(() => {
   app.commandLine.appendSwitch('enable-gpu');
@@ -89,10 +88,6 @@ app.whenReady().then(() => {
     if (e.altKey && e.ctrlKey && e.keycode === 37) {
       setAFKMode(!AFKMode)
     }
-  });
-
-  uIOhook.on('keydown', (e) => {
-    console.log(e.keycode);
   });
 
   uIOhook.start()

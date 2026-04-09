@@ -17,6 +17,7 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "verbatimModuleSyntax": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "rootDir": ".."
   }
 }
