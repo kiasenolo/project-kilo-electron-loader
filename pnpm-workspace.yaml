@@ -1,0 +1,7 @@
+packages:
+  - "kiasenolo.e621.app"
+  - "kiasenolo.desktop.overlay"
+  - "_packages/*"
+allowBuilds:
+  electron: false
+  uiohook-napi: false

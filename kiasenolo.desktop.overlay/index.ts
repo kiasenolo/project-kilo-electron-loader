@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, Menu, Tray, screen } from 'electron';
 import { uIOhook, UiohookKeyboardEvent } from 'uiohook-napi';
 import path from "path"
-import { setAppInfo } from '../kiasenolo.e621.app/cfg';
+import { setAppInfo } from '@kiase/base.config';
 
 const baseURL = "http://127.0.0.1:9487/_LABS/DesktopOverlay";
 const iconPath = "icon.png";

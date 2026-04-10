@@ -4,17 +4,13 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start": "tsc && electron ./dist/."
+    "start": "tsc && ..\\node_modules\\.bin\\electron ./dist/."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "devDependencies": {
-    "electron": "^41.1.1",
-    "typescript": "^6.0.2"
-  },
   "dependencies": {
-    "uiohook-napi": "^1.5.5"
+    "@kiase/base.config": "workspace:*"
   }
 }

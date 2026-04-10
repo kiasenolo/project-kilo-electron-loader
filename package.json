@@ -1,0 +1,7 @@
+{
+	"devDependencies": {
+		"electron": "^41.2.0",
+		"typescript": "^6.0.2",
+		"uiohook-napi": "^1.5.5"
+	}
+}

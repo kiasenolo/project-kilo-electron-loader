@@ -1,4 +1,5 @@
 import path from 'path';
+import Electron from "electron"
 
 export type AppInfo = {
   appName: string,
