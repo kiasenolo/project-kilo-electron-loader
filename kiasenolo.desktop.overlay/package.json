@@ -15,7 +15,6 @@
     "typescript": "^6.0.2"
   },
   "dependencies": {
-    "@kiasenolo/shared": "workspace:*",
     "uiohook-napi": "^1.5.5"
   }
 }

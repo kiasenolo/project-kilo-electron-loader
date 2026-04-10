@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, Menu, Tray, screen } from 'electron';
 import path from 'path';
-import { setAppInfo } from '@kiasenolo/shared';
+import { setAppInfo } from './cfg';
 
 const baseURL = "http://127.0.0.1:9487/_LABS/E621-API";
 const iconPath = "icon.ico";
