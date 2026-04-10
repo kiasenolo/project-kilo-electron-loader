@@ -36,8 +36,8 @@ app.whenReady().then(() => {
 
   const hideWin = () => { Main.hide(); }
   const showWin = () => { Main.show(); Main.focus(); }
-
-  Main.setAlwaysOnTop(true, 'screen-saver');
+  Main.setVisibleOnAllWorkspaces(true)
+  Main.setAlwaysOnTop(true, 'pop-up-menu');
   Main.setSkipTaskbar(true)
   Main.setIgnoreMouseEvents(true)
   Main.loadURL(baseURL + "?NONE_BACKGROUND");
@@ -68,6 +68,7 @@ app.whenReady().then(() => {
 
 
   let AFKMode = false;
+
   const setAFKMode = (tar: boolean) => {
     AFKMode = tar;
     Main.webContents.send("AFK-MODE", tar);
@@ -75,7 +76,6 @@ app.whenReady().then(() => {
   }
 
   const keyEvent = (e: UiohookKeyboardEvent) => {
-    if (AFKMode) return;
     const _ = !(e.metaKey && e.altKey)
     Main.setIgnoreMouseEvents(_)
     Main.webContents.send("FOCUS-ON-IT", !_)
