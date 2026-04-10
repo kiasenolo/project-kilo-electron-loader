@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, Menu, Tray, screen } from 'electron';
 import { uIOhook, UiohookKeyboardEvent } from 'uiohook-napi';
 import path from "path"
-import { setAppInfo } from '../kiasenolo.e621.app/cfg';
+import { setAppInfo } from '@kiasenolo/shared';
 
 const baseURL = "http://127.0.0.1:9487/_LABS/DesktopOverlay";
 const iconPath = "icon.png";
@@ -48,12 +48,16 @@ app.whenReady().then(() => {
     Main.focus();
   });
 
+  Main.on("minimize", () => {
+    Main.setSkipTaskbar(false)
+  })
+
+  Main.on("focus", () => {
+    Main.setSkipTaskbar(true)
+  })
+
   TrayOwO.on("double-click", () => {
-    if (Main.isVisible()) {
-      hideWin();
-    } else {
-      showWin();
-    }
+    showWin();
   });
 
   TrayOwO.setContextMenu(Menu.buildFromTemplate([
@@ -71,7 +75,6 @@ app.whenReady().then(() => {
   const setAFKMode = (tar: boolean) => {
     AFKMode = tar;
     Main.webContents.send("AFK-MODE", tar);
-    // Main.setIgnoreMouseEvents(!tar)
   }
 
   const keyEvent = (e: UiohookKeyboardEvent) => {
@@ -92,7 +95,4 @@ app.whenReady().then(() => {
 
   uIOhook.start()
 
-  Main.on("close", () => {
-    uIOhook.stop()
-  })
 });
