@@ -2,5 +2,8 @@
   "name": "@kiase/base.config",
   "version": "1.0.0",
   "main": "./index.ts",
-  "types": "./index.ts"
+  "types": "./index.ts",
+  "dependencies": {
+    "@kiase/base.config": "workspace:*"
+  }
 }

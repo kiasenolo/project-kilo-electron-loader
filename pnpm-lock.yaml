@@ -18,7 +18,11 @@ importers:
         specifier: ^1.5.5
         version: 1.5.5
 
-  _packages/base.config: {}
+  _packages/base.config:
+    dependencies:
+      '@kiase/base.config':
+        specifier: workspace:*
+        version: 'link:'
 
   kiasenolo.desktop.overlay:
     dependencies:
