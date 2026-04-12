@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start": "tsc && ..\\node_modules\\.bin\\electron ./dist/."
+    "start": "tsc && electron ./dist/."
   },
   "keywords": [],
   "author": "",
