@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, Tray, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, Tray, screen, shell } from 'electron';
 import path from 'path';
 import { setAppInfo } from '@kiase/base.config';
 
@@ -30,6 +30,20 @@ app.whenReady().then(() => {
     webPreferences: {
       preload: path.join(__dirname, 'main.js')
     },
+  });
+
+  Main.webContents.on('will-navigate', (event, url) => {
+    if (url.startsWith('http')) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
+
+  Main.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
   });
 
   const mute = (mute: boolean) => Main.webContents.setAudioMuted(mute);
