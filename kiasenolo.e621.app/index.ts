@@ -85,7 +85,7 @@ app.whenReady().then(() => {
       case "MINI": return Main.minimize();
       case "MAXI": return Main.maximize();
       case "RSTR": return Main.restore();
-      case "HIDE": { hideWin() };
+      case "HIDE": return hideWin();
       case "CLOSE": return Main.close();
       case "KILL": return app.exit(1);
     };
