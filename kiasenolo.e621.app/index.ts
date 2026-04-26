@@ -152,6 +152,8 @@ app.whenReady().then(() => {
     [90, 5],
     [85, 7.5],
     [80, 10],
+    [75, 12.5],
+    [70, 15],
   ]
   const trayReactMenu: (Electron.MenuItemConstructorOptions | Electron.MenuItem)[] = ReactList.map(e => ({
     label: `Reset Rect ${e[0]}`,
