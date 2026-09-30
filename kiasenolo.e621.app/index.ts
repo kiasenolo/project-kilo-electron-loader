@@ -1,9 +1,9 @@
-import { app, BrowserWindow, ipcMain, Menu, Tray, screen, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, Tray, shell, contextBridge, MenuItemConstructorOptions } from 'electron';
 import path from 'path';
 import { setAppInfo } from '@kiase/base.config';
 
 const baseURL = "http://127.0.0.1:9487/_LABS/E621-API";
-const iconPath = "icon.ico";
+const iconPath = "icon.png";
 
 setAppInfo(app, {
   appID: "kiasenolo.e621.app",
@@ -13,8 +13,6 @@ setAppInfo(app, {
 app.whenReady().then(() => {
   app.commandLine.appendSwitch('enable-gpu');
   app.commandLine.appendSwitch('ignore-gpu-blocklist');
-
-  let appIsReady = false
 
   const TrayOwO = new Tray(iconPath);
   const Main = new BrowserWindow({
@@ -28,7 +26,8 @@ app.whenReady().then(() => {
     backgroundColor: "#000",
     icon: iconPath,
     webPreferences: {
-      preload: path.join(__dirname, 'main.js')
+      preload: path.join(__dirname, 'main.js'),
+      webSecurity: false,
     },
   });
 
@@ -50,36 +49,7 @@ app.whenReady().then(() => {
   const hideWin = () => { Main.hide(); mute(true) }
   const showWin = () => { Main.show(); mute(false); Main.focus(); }
 
-  type Ract = {
-    top: number,
-    left: number,
-    width: number,
-    height: number,
-  }
-
-  const setWindowRact = ({
-    top,
-    left,
-    width,
-    height,
-  }: Ract) => {
-    const currentBounds = Main.getBounds();
-    const area = screen.getDisplayMatching(currentBounds);
-    const { x: offsetX, y: offsetY, width: screenW, height: screenH } = area.workArea;
-    const norm = (val: number) => val / 100;
-
-    const rect = {
-      x: offsetX + ~~(screenW * norm(left)),
-      y: offsetY + ~~(screenH * norm(top)),
-      width: ~~(screenW * norm(width)),
-      height: ~~(screenH * norm(height)),
-    };
-
-    Main.setBounds(rect);
-  };
-
   Main.loadURL(baseURL + "?electron");
-
   ipcMain.on("WINDOW", function (_, args) {
     switch (args) {
       case "MINI": return Main.minimize();
@@ -92,17 +62,16 @@ app.whenReady().then(() => {
   });
 
   const sendWindowInfo = () => {
-    if (!appIsReady) return;
-    setTimeout(() => {
-      const data = {
-        id: Main.id,
-        isFocused: Main.isFocused(),
-        isFullScreen: Main.isFullScreen(),
-        isMinimized: Main.isMinimized(),
-        isMaximized: Main.isMaximized(),
-      }
-      Main.webContents.send("WIN-INFO", data)
-    }, 0)
+    if (!Main) return;
+
+    const data = {
+      id: Main.id,
+      isFocused: Main.isFocused(),
+      isFullScreen: Main.isFullScreen(),
+      isMinimized: Main.isMinimized(),
+      isMaximized: Main.isMaximized(),
+    }
+    Main.webContents.send("WIN-INFO", data)
   }
 
   Main.on("blur", sendWindowInfo)
@@ -113,6 +82,84 @@ app.whenReady().then(() => {
   Main.on("minimize", sendWindowInfo)
   Main.on("enter-full-screen", sendWindowInfo)
   Main.on("leave-full-screen", sendWindowInfo)
+
+  type templateType = (Electron.MenuItemConstructorOptions | Electron.MenuItem)[]
+
+  const defaultMenu: MenuItemConstructorOptions[] = [
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'toggleDevTools' },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    }
+  ];
+
+  const buildItems = (list: any, depth = 0): MenuItemConstructorOptions[] => {
+    if (!Array.isArray(list) || depth > 5) return [];
+
+    return list.filter(i => i && typeof i === 'object').map((i): MenuItemConstructorOptions => {
+      const item: MenuItemConstructorOptions = {};
+
+      if (typeof i.label === 'string') item.label = i.label;
+      if (typeof i.type === 'string') item.type = i.type;
+      if (typeof i.role === 'string') item.role = i.role as any;
+      if (typeof i.accelerator === 'string') item.accelerator = i.accelerator;
+      if (typeof i.enabled === 'boolean') item.enabled = i.enabled;
+      if (typeof i.visible === 'boolean') item.visible = i.visible;
+      if (typeof i.checked === 'boolean') item.checked = i.checked;
+      if (Array.isArray(i.submenu)) item.submenu = buildItems(i.submenu, depth + 1);
+
+      if (typeof i.id === 'string' && !item.role && !item.submenu && item.type !== 'separator') {
+        const id = i.id;
+        item.click = (menuItem) => {
+          Main.webContents.send("MENU-CLICK", {
+            id,
+            label: menuItem.label,
+            type: menuItem.type,
+            checked: menuItem.checked,
+          });
+        };
+      }
+
+      return item;
+    });
+  };
+
+  const applyMenu = (template: MenuItemConstructorOptions[]) =>
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+
+  applyMenu(defaultMenu);
+
+  ipcMain.on("MENU-SET", (_, template) => {
+    try {
+      applyMenu(template == null ? defaultMenu : buildItems(template));
+    } catch (err) {
+      console.error("MENU-SET failed:", err);
+    }
+  });
+
+  contextBridge.exposeInMainWorld('electronAPI', {
+    setMenu: (menu?: templateType) => {
+      Menu.setApplicationMenu(Menu.buildFromTemplate(menu ?? defaultMenu));
+    }
+  })
 
   let isAltF4 = false
   Main.webContents.on('before-input-event', (event, input) => {
@@ -130,7 +177,6 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on("GET-APP-INFO", function (_, args) {
-    appIsReady = true;
     sendWindowInfo()
   });
 
@@ -147,39 +193,12 @@ app.whenReady().then(() => {
     }
   });
 
-  const ReactList: [number, number][] = [
-    [95, 2.5],
-    [90, 5],
-    [85, 7.5],
-    [80, 10],
-    [75, 12.5],
-    [70, 15],
-  ]
-  const trayReactMenu: (Electron.MenuItemConstructorOptions | Electron.MenuItem)[] = ReactList.map(e => ({
-    label: `Reset Rect ${e[0]}`,
-    click() {
-      setWindowRact({
-        height: e[0],
-        width: e[0],
-        top: e[1],
-        left: e[1],
-      })
-    }
-  }))
-
   TrayOwO.setContextMenu(Menu.buildFromTemplate([
     {
       label: "Show E621",
       click() {
         showWin();
       }
-    },
-    {
-      type: 'separator'
-    },
-    ...trayReactMenu,
-    {
-      type: 'separator'
     },
     {
       label: "Hide",

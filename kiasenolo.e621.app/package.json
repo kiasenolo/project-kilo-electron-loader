@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start": "tsc && electron ./dist/."
+    "start": "tsc && electron ./dist/.",
+    "startl": "tsc && electron --ozone-platform=x11 ./dist/."
   },
   "keywords": [],
   "author": "",
