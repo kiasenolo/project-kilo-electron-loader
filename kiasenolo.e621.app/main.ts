@@ -31,8 +31,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   windowAction: (act: WindowAction) => {
     ipcRenderer.send('WINDOW', act);
   },
-  setTrayName: (name: string) => {
-    ipcRenderer.send('TRAY-NAME', name);
+  setTitle: (name: string) => {
+    ipcRenderer.send('WIN-TITLE', name);
   },
   appReady: () => {
     ipcRenderer.send('GET-APP-INFO');

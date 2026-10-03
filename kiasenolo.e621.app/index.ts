@@ -10,6 +10,34 @@ setAppInfo(app, {
   appName: "E621-Desktop-App"
 })
 
+const defaultMenu: MenuItemConstructorOptions[] = [
+  {
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' }
+    ]
+  },
+  {
+    label: 'View',
+    submenu: [
+      { role: 'toggleDevTools' },
+      { type: 'separator' },
+      { role: 'resetZoom' },
+      { role: 'zoomIn' },
+      { role: 'zoomOut' },
+      { type: 'separator' },
+      { role: 'togglefullscreen' }
+    ]
+  }
+];
+
+let nowAppMenu: MenuItemConstructorOptions[] = defaultMenu
+
 app.whenReady().then(() => {
   app.commandLine.appendSwitch('enable-gpu');
   app.commandLine.appendSwitch('ignore-gpu-blocklist');
@@ -85,32 +113,6 @@ app.whenReady().then(() => {
 
   type templateType = (Electron.MenuItemConstructorOptions | Electron.MenuItem)[]
 
-  const defaultMenu: MenuItemConstructorOptions[] = [
-    {
-      label: 'Edit',
-      submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
-        { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' }
-      ]
-    },
-    {
-      label: 'View',
-      submenu: [
-        { role: 'toggleDevTools' },
-        { type: 'separator' },
-        { role: 'resetZoom' },
-        { role: 'zoomIn' },
-        { role: 'zoomOut' },
-        { type: 'separator' },
-        { role: 'togglefullscreen' }
-      ]
-    }
-  ];
-
   const buildItems = (list: any, depth = 0): MenuItemConstructorOptions[] => {
     if (!Array.isArray(list) || depth > 5) return [];
 
@@ -134,7 +136,7 @@ app.whenReady().then(() => {
             label: menuItem.label,
             type: menuItem.type,
             checked: menuItem.checked,
-          });
+          }); ``
         };
       }
 
@@ -142,8 +144,10 @@ app.whenReady().then(() => {
     });
   };
 
-  const applyMenu = (template: MenuItemConstructorOptions[]) =>
+  const applyMenu = (template: MenuItemConstructorOptions[]) => {
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+    nowAppMenu = template
+  }
 
   applyMenu(defaultMenu);
 
@@ -154,12 +158,6 @@ app.whenReady().then(() => {
       console.error("MENU-SET failed:", err);
     }
   });
-
-  contextBridge.exposeInMainWorld('electronAPI', {
-    setMenu: (menu?: templateType) => {
-      Menu.setApplicationMenu(Menu.buildFromTemplate(menu ?? defaultMenu));
-    }
-  })
 
   let isAltF4 = false
   Main.webContents.on('before-input-event', (event, input) => {
@@ -172,8 +170,9 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.on("TRAY-NAME", function (_, args) {
+  ipcMain.on("WIN-TITLE", function (_, args) {
     TrayOwO.setToolTip(args);
+    Main.setTitle(args)
   });
 
   ipcMain.on("GET-APP-INFO", function (_, args) {
